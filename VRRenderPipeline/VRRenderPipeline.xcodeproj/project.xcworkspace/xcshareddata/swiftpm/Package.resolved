@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "shaderkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Npikielny/ShaderKit.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "bab6187e4f13a1189b5c4ef5c96049fe8a760d40"
+      }
+    }
+  ],
+  "version" : 2
+}
