@@ -10,8 +10,6 @@ import ShaderKit
 import SwiftUI
 
 struct ContentView: View {
-    
-    
 #if os(iOS)
     static let rate = 1.0 / 60
     let gyro = CMMotionManager()
@@ -26,6 +24,7 @@ struct ContentView: View {
     @State var rotation = UnsafeMutablePointer<Float>.allocate(capacity: 2)
     
     static let hdri = Texture(Bundle.main.url(forResource: "cape_hill_4k", withExtension: "jpg")!.path)
+    let intermediate = hdri.emptyCopy(name: "Intermediate", usage: [.shaderRead, .renderTarget])
     var operation: RenderBuffer!
     
     let timer = Timer.publish(every: Self.rate, on: .main, in: .default).autoconnect()
@@ -35,13 +34,19 @@ struct ContentView: View {
     init() {
         operation = RenderBuffer(presents: true) {
             try! RenderPipeline(
-                pipeline: .constructors("copyVert", "editImage", RenderPipelineDescriptor.texture(Self.hdri)),
+                pipeline: .constructors("copyVert", "renderImages", RenderPipelineDescriptor.texture(Self.hdri)),
                 fragmentTextures: [Self.hdri],
                 fragmentBuffers: [
                     Buffer<MTLRenderCommandEncoder>(
                         Bytes<MTLRenderCommandEncoder>(rotation, count: 2)
                     )
                 ],
+                renderPassDescriptor: RenderPassDescriptor.future(texture: intermediate),
+                vertexCount: 12
+            )
+            try! RenderPipeline(
+                pipeline: .constructors("copyVert", "applyFisheye", RenderPipelineDescriptor.texture(Self.hdri)),
+                fragmentTextures: [intermediate],
                 renderPassDescriptor: RenderPassDescriptor.drawable,
                 vertexCount: 12
             )
@@ -66,7 +71,7 @@ struct ContentView: View {
                             
                             let translation = value.translation
                             rotation.successor().pointee += Float(translation.width / geometry.size.width) * Float.pi / 4
-                            rotation.pointee += Float(translation.height / geometry.size.height / geometry.size.width) * Float.pi / 4
+                            rotation.pointee += Float(translation.height / geometry.size.height) * Float.pi / 4
                         }
                 )
             #if os(iOS)
@@ -85,7 +90,6 @@ struct ContentView: View {
             print("unable to draw"); return
         }
         Task {
-            print("scheduled")
             do {
                 try await operation.execute(
                     commandQueue: commandQueue,
