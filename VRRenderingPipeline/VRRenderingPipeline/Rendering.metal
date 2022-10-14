@@ -18,26 +18,40 @@ constant float2 verts[] = {
     float2(-1, 1)
 };
 
+enum Eye {
+    left,
+    right
+};
+
 struct Vert {
     float4 position [[position]];
     float2 uv;
+    int eye;
 };
 
 [[vertex]]
 Vert copyVert(uint vid [[vertex_id]]) {
     Vert vert;
-    float2 textureVert = verts[vid];
+    float2 textureVert = verts[vid % 6];
+
+    if (vid < 6) {
+        vert.eye = left;
+    } else {
+        vert.eye = right;
+    }
     
-    vert.position = float4(textureVert, 0, 1);
+    vert.position = float4(textureVert.x * 0.5 + ((float)vert.eye - 0.5), textureVert.y, 0, 1);
     vert.uv = textureVert * 0.5 + 0.5;
+    vert.uv.x *= 2;
     vert.uv = float2(vert.uv.x, 1 - vert.uv.y);
+    
     return vert;
 }
 
 constexpr metal::sampler sam(metal::min_filter::nearest, metal::mag_filter::nearest, metal::mip_filter::none);
 
 constant float2 conversion = float2(60.f / 360.f, 60.f / 180.f);
-
+constant float2 offset = float2(0.2, 0);
 [[fragment]]
 float4 editImage(Vert vert [[stage_in]],
                  texture2d<float> image,
@@ -58,5 +72,6 @@ float4 editImage(Vert vert [[stage_in]],
     }
     
     float4 color = image.sample(sam, uv);
+//    return float4(1, 0, 0, 1);
     return float4(color.x, color.y, color.z, color.w);
 }

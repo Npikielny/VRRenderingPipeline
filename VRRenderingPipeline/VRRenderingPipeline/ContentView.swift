@@ -42,7 +42,9 @@ struct ContentView: View {
                         Bytes<MTLRenderCommandEncoder>(rotation, count: 2)
                     )
                 ],
-                renderPassDescriptor: RenderPassDescriptor.drawable)
+                renderPassDescriptor: RenderPassDescriptor.drawable,
+                vertexCount: 12
+            )
         }
         rotation.assign(repeating: 0, count: 2)
     }
