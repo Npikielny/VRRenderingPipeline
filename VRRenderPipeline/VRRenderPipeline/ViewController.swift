@@ -5,12 +5,18 @@
 //  Created by Noah Pikielny on 8/29/22.
 //
 
+#if os(iOS)
 import UIKit
+#else
+import Cocoa
+#endif
 import MetalKit
 import ShaderKit
-
+#if os(iOS)
 class ViewController: UIViewController {
-
+#else
+    class ViewController: UIViewController {
+#endif
     let device = MTLCreateSystemDefaultDevice()!
     lazy var commandQueue = device.makeCommandQueue()!
     lazy var metalView: MTKView = {
@@ -34,6 +40,14 @@ class ViewController: UIViewController {
             metalView.topAnchor.constraint(equalTo: view.topAnchor),
             metalView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        
+        let library = device.makeDefaultLibrary()
+        let editImage = library?.makeFunction(name: "editName")
+        let compute = device.makeComputePipelineState(function: editImage!)
+        
+        let commandBuffer = commandQueue.makeCommandBuffer()
+        let enoder = commandBuffer?.makeComputeCommandEncoder()
+        encoder.setBytes([0, 1], length: MemoryLayout<Int32>.stride, index: 0)
         
         let _ = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             Task {
