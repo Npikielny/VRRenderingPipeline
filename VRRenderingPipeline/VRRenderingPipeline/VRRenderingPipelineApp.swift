@@ -15,10 +15,8 @@ struct VRRenderingPipelineApp: App {
                 Color.black.ignoresSafeArea()
                 HStack {
                     ContentView()
-//                    ContentView()
                 }
             }
-//            .ignoresSafeArea()
         }
     }
 }

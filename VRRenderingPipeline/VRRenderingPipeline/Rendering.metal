@@ -63,14 +63,22 @@ constant float2 conversion = float2(60.f / 360.f, 60.f / 180.f);
 float4 renderImages(Vert vert [[stage_in]],
                     texture2d<float> image,
                     constant float * angles,
+                    // constant float * acceleration,
                     constant int & eye) {
     float angle = angles[0];
     
     
-    float2 uv = float2x2(
+    float2x2 rotationMatrix = float2x2(
                          cos(angle), -sin(angle),
                          sin(angle), cos(angle)
-                         ) * (vert.uv - 0.5) * conversion + 0.5;
+                         );
+    
+//    float2x2 scaleMatrix = float2x2(
+//                         acceleration, 0,
+//                         0, acceleration
+//                         );
+    
+    float2 uv = rotationMatrix * (vert.uv - 0.5) * conversion + 0.5;
     float2 offset = float2(angles[1] + 0.5 * (float)eye, 0);
     uv += offset * conversion;
     float2 x = 1;

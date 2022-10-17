@@ -18,7 +18,7 @@ enum Eye: Int32 {
 struct ContentView: View {
 #if os(iOS)
     static let rate = 1.0 / 60
-    let gyro = CMMotionManager()
+    let manager = CMMotionManager()
 #else
     static let rate = 1.0 / 10
 #endif
@@ -27,6 +27,7 @@ struct ContentView: View {
     let view = MTKViewRepresentable(frame: CGRect(x: 0, y: 0, width: 512 * 2, height: 512), device: Self.device)
     
     @State var rotation = UnsafeMutablePointer<Float>.allocate(capacity: 2)
+    @State var position = UnsafeMutablePointer<Float>.allocate(capacity: 3)
     
     static let hdri = Texture(Bundle.main.url(forResource: "cape_hill_4k", withExtension: "jpg")!.path)
     var operation: RenderBuffer!
@@ -57,7 +58,10 @@ struct ContentView: View {
                     try RenderPipeline(
                         pipeline: .constructors("imageVert", "renderImages", RenderPipelineDescriptor.texture(Self.hdri)),
                         fragmentTextures: [Self.hdri],
-                        fragmentBuffers: [Buffer(Bytes(rotation, count: 2)), eyeBuffer],
+                        fragmentBuffers: [
+                            Buffer(Bytes(rotation, count: 2)),
+//                            Buffer(Bytes(position, count: 3)),
+                            eyeBuffer],
                         renderPassDescriptor: RenderPassDescriptor.future(texture: intermediate),
                         vertexCount: 6
                     )
@@ -103,6 +107,7 @@ struct ContentView: View {
                     fragmentTextures: [Self.hdri],
                     fragmentBuffers: [
                         Buffer<MTLRenderCommandEncoder>(Bytes(rotation, count: 2)),
+                        Buffer<MTLRenderCommandEncoder>(Bytes(position, count: 0)),
                         Buffer(Bytes(Eye.none.rawValue))
                     ],
                     renderPassDescriptor: RenderPassDescriptor.drawable,
@@ -111,6 +116,7 @@ struct ContentView: View {
             }
         }
         rotation.assign(repeating: 0, count: 2)
+        position.assign(repeating: 0, count: 3)
     }
     
     var body: some View {
@@ -163,18 +169,26 @@ struct ContentView: View {
     
 #if os(iOS)
     func setupGyroscope() {
-        if gyro.isGyroAvailable {
-            gyro.gyroUpdateInterval = Self.rate
-            gyro.startGyroUpdates()
+        if manager.isGyroAvailable {
+            manager.gyroUpdateInterval = Self.rate
+            manager.startGyroUpdates()
+        }
+        if manager.isAccelerometerAvailable {
+            manager.accelerometerUpdateInterval = Self.rate
+            manager.startAccelerometerUpdates()
         }
     }
 #endif
     
     func updateParameters() {
 #if os(iOS)
-        if let data = gyro.gyroData {
+        if let data = manager.gyroData {
             rotation.pointee += Float(data.rotationRate.z * Self.rate)
             rotation.successor().pointee -= Float(data.rotationRate.x * Self.rate)
+        }
+        if let data = manager.accelerometerData {
+            position.pointee += Float(data.acceleration.z * Self.rate)
+            position.successor().pointee -= Float(data.acceleration.x * Self.rate)
         }
 #endif
     }
