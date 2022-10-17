@@ -84,11 +84,17 @@ float4 renderImages(Vert vert [[stage_in]],
     return float4(color.x, color.y, color.z, color.w);
 }
 
+/***************************************************************************************
+* Title: Fish Eye Shader
+* Author: JEGX
+* Access Date: 10/17/2022
+* Availability: https://www.geeks3d.com/glslhacker/cs/
+*************************************************************************************/
 [[fragment]]
 float4 applyFisheye(Vert vert [[stage_in]],
                     texture2d<float>image) {
     const float PI = 3.141592;
-    float aperture = 170.0;
+    float aperture = 178.0;
     float apertureHalf = 0.5 * aperture * (PI / 180.0);
     float maxFactor = sin(apertureHalf);
     
