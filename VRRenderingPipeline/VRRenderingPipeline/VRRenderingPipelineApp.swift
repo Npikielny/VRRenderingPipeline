@@ -11,7 +11,14 @@ import SwiftUI
 struct VRRenderingPipelineApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ZStack{
+                Color.black.ignoresSafeArea()
+                HStack {
+                    ContentView()
+//                    ContentView()
+                }
+            }
+//            .ignoresSafeArea()
         }
     }
 }

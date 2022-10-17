@@ -4,7 +4,6 @@
 //
 //  Created by Noah Pikielny on 10/13/22.
 //
-
 import CoreMotion
 import MetalKit
 import ShaderKit
